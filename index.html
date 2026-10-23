@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 祈禱計時與經驗值效率分析</title>
+    <title>MapleBuff - 祈禱計時與經驗值截圖分析</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Tesseract.js (前端 OCR 文字辨識庫) -->
@@ -16,7 +16,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖分析 (Ctrl+V / 上傳)</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖即時分析 (Win+Shift+S 截圖後直接 Ctrl+V)</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -89,16 +89,16 @@
             <!-- 貼上與上傳區域 -->
             <div id="pasteZone" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition relative">
                 <div id="pasteText" class="text-sm font-bold text-slate-300">
-                    📋 點此處按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼上截圖<br>
-                    <span class="text-xs text-slate-500 font-normal">或點擊選擇檔案上傳</span>
+                    📋 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Win + Shift + S</kbd> 截圖後直接按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd><br>
+                    <span class="text-xs text-slate-500 font-normal">（也可以點擊此區選擇檔案）</span>
                 </div>
-                <!-- 隱藏的圖片選擇器 -->
                 <input type="file" id="imgUploadInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
             </div>
 
-            <!-- 預覽圖 -->
-            <div id="imgPreviewContainer" class="hidden flex justify-center">
+            <!-- 預覽圖與辨識結果 -->
+            <div id="imgPreviewContainer" class="hidden flex flex-col items-center gap-1">
                 <img id="imgPreview" class="max-h-24 rounded border border-slate-800">
+                <div id="ocrRawText" class="text-[10px] text-slate-500 font-mono"></div>
             </div>
 
             <!-- 計算結果面板 -->
@@ -139,4 +139,30 @@
         const timeDisplay = document.getElementById('timeDisplay');
         const statusBadge = document.getElementById('statusBadge');
         const displayCard = document.getElementById('displayCard');
-        const startResetBtn = document.getElementById('startReset
+        const startResetBtn = document.getElementById('startResetBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const alertSlider = document.getElementById('alertSlider');
+        const alertTimeVal = document.getElementById('alertTimeVal');
+        const audioFile = document.getElementById('audioFile');
+        const audioStatus = document.getElementById('audioStatus');
+        const testAudioBtn = document.getElementById('testAudioBtn');
+        const audioDurSlider = document.getElementById('audioDurSlider');
+        const audioDurVal = document.getElementById('audioDurVal');
+        const audioVolSlider = document.getElementById('audioVolSlider');
+        const audioVolVal = document.getElementById('audioVolVal');
+        const autoLoopToggle = document.getElementById('autoLoopToggle');
+
+        alertSlider.addEventListener('input', e => alertTimeVal.textContent = e.target.value);
+        audioDurSlider.addEventListener('input', e => audioDurVal.textContent = parseFloat(e.target.value).toFixed(1));
+        audioVolSlider.addEventListener('input', e => audioVolVal.textContent = e.target.value);
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function initAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state
