@@ -3,336 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 祈禱 118s 倒數計時器 (完整自訂版)</title>
-    <!-- 引入 Tailwind CSS 打造極簡科技感介面 -->
+    <title>MapleBuff - 祈禱計時與經驗值效率分析</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tesseract.js (前端 OCR 文字辨識庫) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4 selection:bg-cyan-500 selection:text-slate-950">
 
     <!-- 頂部標題 -->
-    <header class="w-full max-w-md text-center py-6">
-        <h1 class="text-3xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            ✨ 祈禱 Buff 專屬計時器 ✨
+    <header class="w-full max-w-md text-center py-4">
+        <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-2">118 秒精準倒數，音效、長度、音量自由掌控！</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖分析 (Ctrl+V)</p>
     </header>
 
-    <!-- 主要內容卡片 -->
-    <main class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
+    <main class="w-full max-w-md space-y-4">
         
-        <!-- 大數字倒數計時顯示區 -->
-        <div id="displayCard" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 text-center transition-all duration-300">
-            <div class="text-xs font-semibold text-slate-400 tracking-wider uppercase mb-1">Buff 剩餘時間</div>
-            <div id="timeDisplay" class="text-6xl font-mono font-black text-cyan-400 tracking-tight my-2">
-                01:58
-            </div>
-            <div id="statusBadge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400">
-                尚未開始
-            </div>
-        </div>
-
-        <!-- 主要控制按鈕 -->
-        <div class="grid grid-cols-2 gap-3">
-            <button id="startResetBtn" class="col-span-2 py-4 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-lg transition shadow-lg shadow-emerald-500/20 active:scale-95">
-                🚀 開始 / 重新計時 (118s)
-            </button>
-            <button id="pauseBtn" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition">
-                ⏸️ 暫停
-            </button>
-            <button id="stopBtn" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold text-sm transition">
-                ⏹️ 重置歸零
-            </button>
-        </div>
-
-        <!-- 滑桿與警報設定區 -->
-        <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-4">
-            
-            <!-- 提醒秒數滑桿 -->
-            <div class="space-y-2">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-300 font-semibold">⏰ 於剩餘幾秒時提醒</span>
-                    <span class="text-xs font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-lg">
-                        剩餘 <span id="alertTimeVal" class="font-bold text-sm">15</span> 秒
-                    </span>
-                </div>
-                <input type="range" id="alertSlider" min="5" max="50" step="1" value="15" class="w-full accent-cyan-500 cursor-pointer">
+        <!-- 1. 祈禱計時卡片 -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">🕒 祈禱 118s 計時器</span>
+                <span id="statusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">尚未開始</span>
             </div>
 
-            <!-- 🎵 自訂音效上傳、長度與音量控制區 -->
-            <div class="border-t border-slate-800/80 pt-3 space-y-3">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-300 font-semibold">🎵 上傳自訂音效</span>
-                    <span id="audioStatus" class="text-[11px] text-slate-500">使用預設提示音</span>
-                </div>
+            <div id="displayCard" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-center">
+                <div id="timeDisplay" class="text-5xl font-mono font-black text-cyan-400 tracking-tight">01:58</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button id="startResetBtn" class="col-span-2 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition">
+                    🚀 開始 / 重新計時 (118s)
+                </button>
+                <button id="pauseBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs">⏸️ 暫停</button>
+                <button id="stopBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-rose-400 font-bold text-xs">⏹️ 重置</button>
+            </div>
+
+            <!-- 音效與警報設定摺疊 -->
+            <details class="text-xs space-y-2 pt-1 border-t border-slate-800/80">
+                <summary class="cursor-pointer text-slate-400 font-semibold hover:text-slate-200">⚙️ 音效與警報設定</summary>
                 
-                <div class="flex items-center gap-2">
-                    <input type="file" id="audioFile" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-slate-950 hover:file:bg-cyan-400 cursor-pointer">
-                    <button id="testAudioBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs transition shrink-0" title="試聽音效">
-                        🔊 試聽
-                    </button>
-                </div>
-
-                <!-- 1. 音效播放長度滑桿 -->
-                <div class="space-y-1.5 pt-1">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">音效播放長度</span>
-                        <span class="font-mono text-cyan-400"><span id="audioDurVal">2.0</span> 秒</span>
+                <div class="space-y-2 pt-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">提醒時間</span>
+                        <span class="text-cyan-400 font-mono font-bold">剩 <span id="alertTimeVal">15</span> 秒</span>
                     </div>
-                    <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500 cursor-pointer">
-                </div>
+                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="w-full accent-cyan-500">
 
-                <!-- 2. 音量大小滑桿 -->
-                <div class="space-y-1.5 pt-1">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">音效音量大小</span>
-                        <span class="font-mono text-emerald-400"><span id="audioVolVal">50</span>%</span>
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">自訂音效</span>
+                        <span id="audioStatus" class="text-[10px] text-slate-500">預設提示音</span>
                     </div>
-                    <input type="range" id="audioVolSlider" min="5" max="100" step="5" value="50" class="w-full accent-emerald-500 cursor-pointer">
+                    <div class="flex gap-2">
+                        <input type="file" id="audioFile" accept="audio/*" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-slate-950">
+                        <button id="testAudioBtn" class="px-2 py-1 bg-slate-800 text-cyan-400 rounded-lg text-[11px] shrink-0">🔊 試聽</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>音量</span><span id="audioVolVal">50</span>%</div>
+                            <input type="range" id="audioVolSlider" min="5" max="100" value="50" class="w-full accent-emerald-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>長度</span><span id="audioDurVal">2.0</span>s</div>
+                            <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">🔁 自動循環模式</span>
+                        <input type="checkbox" id="autoLoopToggle" checked class="accent-cyan-500">
+                    </div>
                 </div>
+            </details>
+        </section>
+
+        <!-- 2. 📈 經驗值效率計算卡片 (新增功能) -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">📈 練功經驗值效率分析</span>
+                <span id="ocrStatus" class="text-[10px] text-cyan-400 font-mono">Ready</span>
             </div>
 
-            <!-- 自動循環模式開關 -->
-            <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
-                <div>
-                    <div class="text-sm font-semibold text-slate-300">🔁 自動循環模式</div>
-                    <div class="text-[11px] text-slate-500">倒數歸零後自動重新計時 118 秒</div>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="autoLoopToggle" class="sr-only peer" checked>
-                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                </label>
-            </div>
-
-        </div>
-
-    </main>
-
-    <!-- 頁尾說明 -->
-    <footer class="w-full max-w-md text-center py-4 text-xs text-slate-500 space-y-1">
-        <p>💡 全新現貨，不用等五十年後的流星雨</p>
-        <p>點擊「開始」時請確認瀏覽器已允許播放聲音。</p>
-    </footer>
-
-    <!-- 核心邏輯 JavaScript -->
-    <script>
-        const TOTAL_TIME = 118; // 祈禱標準 118 秒
-        let remainingTime = TOTAL_TIME;
-        let timerId = null;
-        let isRunning = false;
-        let audioCtx = null;
-        let hasAlertedThisCycle = false;
-        let customAudioBuffer = null;
-
-        // DOM 元素引用
-        const timeDisplay = document.getElementById('timeDisplay');
-        const statusBadge = document.getElementById('statusBadge');
-        const displayCard = document.getElementById('displayCard');
-        const startResetBtn = document.getElementById('startResetBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const alertSlider = document.getElementById('alertSlider');
-        const alertTimeVal = document.getElementById('alertTimeVal');
-        const audioFile = document.getElementById('audioFile');
-        const audioStatus = document.getElementById('audioStatus');
-        const testAudioBtn = document.getElementById('testAudioBtn');
-        const audioDurSlider = document.getElementById('audioDurSlider');
-        const audioDurVal = document.getElementById('audioDurVal');
-        const audioVolSlider = document.getElementById('audioVolSlider');
-        const audioVolVal = document.getElementById('audioVolVal');
-        const autoLoopToggle = document.getElementById('autoLoopToggle');
-
-        // 滑桿數值即時更新
-        alertSlider.addEventListener('input', (e) => {
-            alertTimeVal.textContent = e.target.value;
-        });
-
-        audioDurSlider.addEventListener('input', (e) => {
-            audioDurVal.textContent = parseFloat(e.target.value).toFixed(1);
-        });
-
-        audioVolSlider.addEventListener('input', (e) => {
-            audioVolVal.textContent = e.target.value;
-        });
-
-        // 格式化秒數為 MM:SS
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        // 初始化 Web Audio API
-        function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // 處理使用者上傳自訂音效
-        audioFile.addEventListener('change', async (e) => {
-            initAudioContext();
-            const file = e.target.files[0];
-            if (!file) return;
-
-            audioStatus.textContent = "讀取音效中...";
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                customAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                audioStatus.textContent = `✅ 已載入: ${file.name.substring(0, 12)}...`;
-                audioStatus.className = "text-[11px] text-emerald-400 font-semibold";
-            } catch (err) {
-                console.error(err);
-                audioStatus.textContent = "❌ 音效格式錯誤";
-                audioStatus.className = "text-[11px] text-rose-400 font-semibold";
-                customAudioBuffer = null;
-            }
-        });
-
-        // 播放警報音效核心（支援音量、長度控制）
-        function playAlertSound() {
-            initAudioContext();
-            if (!audioCtx) return;
-
-            const targetDuration = parseFloat(audioDurSlider.value);
-            const volumePercent = parseInt(audioVolSlider.value, 10) / 100; // 轉換為 0.0 ~ 1.0
-
-            if (customAudioBuffer) {
-                // 播放自訂上傳音效
-                const source = audioCtx.createBufferSource();
-                source.buffer = customAudioBuffer;
-
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.setValueAtTime(volumePercent, audioCtx.currentTime);
-
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                source.start(0);
-                source.stop(audioCtx.currentTime + targetDuration);
-            } else {
-                // 預設提示音序列
-                playDefaultBeepSequence(targetDuration, volumePercent);
-            }
-        }
-
-        // 預設蜂鳴器序列（支援音量控制）
-        function playDefaultBeepSequence(maxDuration, volume) {
-            const startTime = audioCtx.currentTime;
-            const endTime = startTime + maxDuration;
-            
-            let t = startTime;
-            while (t < endTime) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, t);
-                
-                // 套用使用者設定的音量
-                gain.gain.setValueAtTime(0.3 * volume, t);
-                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(t);
-                osc.stop(t + 0.15);
-                t += 0.3;
-            }
-        }
-
-        // 試聽按鈕
-        testAudioBtn.addEventListener('click', () => {
-            initAudioContext();
-            playAlertSound();
-        });
-
-        // 更新畫面 UI
-        function updateUI() {
-            timeDisplay.textContent = formatTime(remainingTime);
-            const alertThreshold = parseInt(alertSlider.value, 10);
-
-            if (!isRunning) {
-                displayCard.className = "bg-slate-950 border border-slate-800 rounded-2xl p-6 text-center transition-all duration-300";
-                timeDisplay.className = "text-6xl font-mono font-black text-slate-500 tracking-tight my-2";
-                return;
-            }
-
-            if (remainingTime <= alertThreshold && remainingTime > 0) {
-                displayCard.className = "bg-rose-950/40 border border-rose-500/50 rounded-2xl p-6 text-center transition-all duration-300 animate-pulse";
-                timeDisplay.className = "text-6xl font-mono font-black text-rose-400 tracking-tight my-2";
-                statusBadge.textContent = "⚠️ 請準備施放祈禱！";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
-            } else {
-                displayCard.className = "bg-slate-950 border border-cyan-500/30 rounded-2xl p-6 text-center transition-all duration-300";
-                timeDisplay.className = "text-6xl font-mono font-black text-cyan-400 tracking-tight my-2";
-                statusBadge.textContent = "🟢 Buff 作用中";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-            }
-        }
-
-        // 開始 / 重置計時邏輯
-        function startTimer() {
-            initAudioContext();
-            clearInterval(timerId);
-            
-            remainingTime = TOTAL_TIME;
-            isRunning = true;
-            hasAlertedThisCycle = false;
-
-            updateUI();
-
-            timerId = setInterval(() => {
-                remainingTime--;
-
-                const alertThreshold = parseInt(alertSlider.value, 10);
-
-                if (remainingTime === alertThreshold && !hasAlertedThisCycle) {
-                    playAlertSound();
-                    hasAlertedThisCycle = true;
-                }
-
-                if (remainingTime <= 0) {
-                    playAlertSound();
-                    
-                    if (autoLoopToggle.checked) {
-                        remainingTime = TOTAL_TIME;
-                        hasAlertedThisCycle = false;
-                    } else {
-                        clearInterval(timerId);
-                        isRunning = false;
-                        statusBadge.textContent = "🛑 Buff 已結束";
-                        statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400";
-                    }
-                }
-
-                updateUI();
-            }, 1000);
-        }
-
-        // 暫停計時
-        pauseBtn.addEventListener('click', () => {
-            if (isRunning) {
-                clearInterval(timerId);
-                isRunning = false;
-                statusBadge.textContent = "⏸️ 已暫停";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20";
-            }
-        });
-
-        // 完全重置
-        stopBtn.addEventListener('click', () => {
-            clearInterval(timerId);
-            isRunning = false;
-            remainingTime = TOTAL_TIME;
-            statusBadge.textContent = "尚未開始";
-            statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400";
-            updateUI();
-        });
-
-        startResetBtn.addEventListener('click', startTimer);
-        updateUI();
-    </script>
-</body>
-</html>
+            <!-- 貼上區域 -->
+            <div id="pasteZone" tabindex="0" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition">
+                <div class="text-sm font-bold text-slate-300">📋 點擊此處並按下 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼
