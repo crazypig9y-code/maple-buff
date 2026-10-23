@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 祈禱 118s 倒數計時器</title>
+    <title>MapleBuff - 祈禱 118s 倒數計時器 (自訂音效版)</title>
     <!-- 引入 Tailwind CSS 打造極簡科技感介面 -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -14,7 +14,7 @@
         <h1 class="text-3xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ 祈禱 Buff 專屬計時器 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-2">118 秒精準倒數，自訂警報提醒，練功絕不卡 Buff！</p>
+        <p class="text-xs text-slate-400 mt-2">118 秒精準倒數，支援自訂音效與長度控制！</p>
     </header>
 
     <!-- 主要內容卡片 -->
@@ -47,19 +47,38 @@
         <!-- 滑桿與警報設定區 -->
         <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-4">
             
-            <!-- 滑桿：選擇剩幾秒提示 -->
+            <!-- 提醒秒數滑桿 -->
             <div class="space-y-2">
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-300 font-semibold">🔊 響鈴提示時間</span>
+                    <span class="text-slate-300 font-semibold">⏰ 於剩餘幾秒時提醒</span>
                     <span class="text-xs font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-lg">
-                        剩餘 <span id="alertTimeVal" class="font-bold text-sm">15</span> 秒時提醒
+                        剩餘 <span id="alertTimeVal" class="font-bold text-sm">15</span> 秒
                     </span>
                 </div>
                 <input type="range" id="alertSlider" min="5" max="50" step="1" value="15" class="w-full accent-cyan-500 cursor-pointer">
-                <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-                    <span>5秒</span>
-                    <span>25秒</span>
-                    <span>50秒</span>
+            </div>
+
+            <!-- 🎵 自訂音效上傳與長度控制區 -->
+            <div class="border-t border-slate-800/80 pt-3 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-300 font-semibold">🎵 上傳自訂音效</span>
+                    <span id="audioStatus" class="text-[11px] text-slate-500">使用預設提示音</span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <input type="file" id="audioFile" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-slate-950 hover:file:bg-cyan-400 cursor-pointer">
+                    <button id="testAudioBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs transition shrink-0" title="試聽音效">
+                        🔊 試聽
+                    </button>
+                </div>
+
+                <!-- 滑桿：控制音效播放長度 -->
+                <div class="space-y-1.5 pt-1">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">音效播放長度</span>
+                        <span class="font-mono text-cyan-400"><span id="audioDurVal">2.0</span> 秒</span>
+                    </div>
+                    <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500 cursor-pointer">
                 </div>
             </div>
 
@@ -80,8 +99,9 @@
     </main>
 
     <!-- 頁尾說明 -->
-    <footer class="w-full max-w-md text-center py-4 text-xs text-slate-500">
-        <p>💡 提示：點擊「開始」時請確定已允許網頁播放聲音。</p>
+    <footer class="w-full max-w-md text-center py-4 text-xs text-slate-500 space-y-1">
+        <p>💡 全新現貨，不用等五十年後的流星雨</p>
+        <p>點擊「開始」時請確認瀏覽器已允許播放聲音。</p>
     </footer>
 
     <!-- 核心邏輯 JavaScript -->
@@ -92,6 +112,7 @@
         let isRunning = false;
         let audioCtx = null;
         let hasAlertedThisCycle = false;
+        let customAudioBuffer = null; // 儲存上傳的音效資料
 
         // DOM 元素引用
         const timeDisplay = document.getElementById('timeDisplay');
@@ -102,11 +123,20 @@
         const stopBtn = document.getElementById('stopBtn');
         const alertSlider = document.getElementById('alertSlider');
         const alertTimeVal = document.getElementById('alertTimeVal');
+        const audioFile = document.getElementById('audioFile');
+        const audioStatus = document.getElementById('audioStatus');
+        const testAudioBtn = document.getElementById('testAudioBtn');
+        const audioDurSlider = document.getElementById('audioDurSlider');
+        const audioDurVal = document.getElementById('audioDurVal');
         const autoLoopToggle = document.getElementById('autoLoopToggle');
 
         // 滑桿數值即時更新
         alertSlider.addEventListener('input', (e) => {
             alertTimeVal.textContent = e.target.value;
+        });
+
+        audioDurSlider.addEventListener('input', (e) => {
+            audioDurVal.textContent = parseFloat(e.target.value).toFixed(1);
         });
 
         // 格式化秒數為 MM:SS
@@ -117,7 +147,7 @@
         }
 
         // 初始化 Web Audio API
-        function initAudio() {
+        function initAudioContext() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
@@ -126,33 +156,80 @@
             }
         }
 
-        // 發出警報提示音
-        function playBeep(freq = 880, duration = 0.25) {
-            initAudio();
+        // 處理使用者上傳自訂音效
+        audioFile.addEventListener('change', async (e) => {
+            initAudioContext();
+            const file = e.target.files[0];
+            if (!file) return;
+
+            audioStatus.textContent = "讀取音效中...";
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                customAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                audioStatus.textContent = `✅ 已載入: ${file.name.substring(0, 12)}...`;
+                audioStatus.className = "text-[11px] text-emerald-400 font-semibold";
+            } catch (err) {
+                console.error(err);
+                audioStatus.textContent = "❌ 音效格式錯誤";
+                audioStatus.className = "text-[11px] text-rose-400 font-semibold";
+                customAudioBuffer = null;
+            }
+        });
+
+        // 播放警報音效核心（支援自訂音效或預設逼逼聲，並根據滑桿長度截斷）
+        function playAlertSound() {
+            initAudioContext();
             if (!audioCtx) return;
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const targetDuration = parseFloat(audioDurSlider.value);
 
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if (customAudioBuffer) {
+                // 播放自訂上傳的音效
+                const source = audioCtx.createBufferSource();
+                source.buffer = customAudioBuffer;
 
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
 
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
 
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+                source.start(0);
+                // 根據滑桿設定的長度自動停止播放
+                source.stop(audioCtx.currentTime + targetDuration);
+            } else {
+                // 預設逼逼提示音序列
+                playDefaultBeepSequence(targetDuration);
+            }
         }
 
-        // 發出連續急促警告音
-        function playAlertSequence() {
-            playBeep(880, 0.15);
-            setTimeout(() => playBeep(880, 0.15), 200);
-            setTimeout(() => playBeep(1046, 0.3), 400);
+        // 預設蜂鳴器序列
+        function playDefaultBeepSequence(maxDuration) {
+            const startTime = audioCtx.currentTime;
+            const endTime = startTime + maxDuration;
+            
+            // 迴圈播放逼逼聲直到達到指定的持續秒數
+            let t = startTime;
+            while (t < endTime) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, t);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(t);
+                osc.stop(t + 0.15);
+                t += 0.3; // 每 0.3 秒一響
+            }
         }
+
+        // 試聽按鈕
+        testAudioBtn.addEventListener('click', () => {
+            initAudioContext();
+            playAlertSound();
+        });
 
         // 更新畫面 UI
         function updateUI() {
@@ -181,7 +258,7 @@
 
         // 開始 / 重置計時邏輯
         function startTimer() {
-            initAudio();
+            initAudioContext();
             clearInterval(timerId);
             
             remainingTime = TOTAL_TIME;
@@ -197,13 +274,13 @@
 
                 // 到達設定的剩餘秒數 -> 發出警報
                 if (remainingTime === alertThreshold && !hasAlertedThisCycle) {
-                    playAlertSequence();
+                    playAlertSound();
                     hasAlertedThisCycle = true;
                 }
 
                 // 時間歸零
                 if (remainingTime <= 0) {
-                    playAlertSequence();
+                    playAlertSound();
                     
                     if (autoLoopToggle.checked) {
                         // 自動循環：重新開始 118 秒
