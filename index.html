@@ -30,7 +30,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">六宮格儀表板 + 內嵌網頁收合與大尺寸顯示</p>
+        <p class="text-xs text-slate-400 mt-1">六宮格儀表板 + 超大尺寸內嵌網頁</p>
     </header>
 
     <!-- 六宮格 Grid 佈局 (2 欄 × 3 排) -->
@@ -204,16 +204,16 @@
             <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置楓幣測量</button>
         </section>
 
-        <!-- 【格 5 & 格 6】：內嵌網頁專區 (橫跨兩格 col-span-2，支援大尺寸與顯示/隱藏切換) -->
+        <!-- 【格 5 & 格 6】：內嵌網頁專區 (長寬放大兩倍: 高度 1700px) -->
         <section class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-2">
             <div class="flex justify-between items-center">
-                <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區 (格子 5 + 6)</span>
+                <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區 (格子 5 + 6，雙倍大視窗)</span>
                 <button onclick="toggleIframeVisibility()" id="toggleIframeBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1 rounded-lg transition font-bold">
                     📂 隱藏內嵌網頁
                 </button>
             </div>
             
-            <div id="iframeWrapper" class="w-full h-[850px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden responsive-iframe-container transition-all duration-300">
+            <div id="iframeWrapper" class="w-full h-[1700px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden responsive-iframe-container transition-all duration-300">
                 <iframe src="https://morrisrrrrrrr-svg.github.io/" class="responsive-iframe"></iframe>
             </div>
         </section>
