@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 祈禱計時與經驗值截圖分析</title>
+    <title>MapleBuff - 祈禱計時與經驗值對話框貼上版</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Tesseract.js (前端 OCR 文字辨識庫) -->
@@ -16,7 +16,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖即時分析</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 聊天視窗貼上經驗值分析</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -49,60 +49,4 @@
                         <span class="text-slate-400">提醒時間</span>
                         <span class="text-cyan-400 font-mono font-bold">剩 <span id="alertTimeVal">15</span> 秒</span>
                     </div>
-                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="w-full accent-cyan-500">
-
-                    <div class="flex justify-between items-center pt-1">
-                        <span class="text-slate-400">自訂音效</span>
-                        <span id="audioStatus" class="text-[10px] text-slate-500">預設提示音</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="file" id="audioFile" accept="audio/*" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-slate-950">
-                        <button id="testAudioBtn" class="px-2 py-1 bg-slate-800 text-cyan-400 rounded-lg text-[11px] shrink-0">🔊 試聽</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <div>
-                            <div class="flex justify-between text-[11px] text-slate-400"><span>音量</span><span id="audioVolVal">50</span>%</div>
-                            <input type="range" id="audioVolSlider" min="5" max="100" value="50" class="w-full accent-emerald-500">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[11px] text-slate-400"><span>長度</span><span id="audioDurVal">2.0</span>s</div>
-                            <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500">
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between items-center pt-1">
-                        <span class="text-slate-400">🔁 自動循環模式</span>
-                        <input type="checkbox" id="autoLoopToggle" checked class="accent-cyan-500">
-                    </div>
-                </div>
-            </details>
-        </section>
-
-        <!-- 2. 📈 經驗值效率計算卡片 -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-            <div class="flex justify-between items-center">
-                <span class="text-xs font-bold text-slate-400">📈 練功經驗值效率分析</span>
-                <span id="ocrStatus" class="text-[10px] text-cyan-400 font-mono">Ready</span>
-            </div>
-
-            <!-- 貼上與上傳區域 -->
-            <div id="pasteZone" tabindex="0" class="border-2 border-dashed border-slate-700 focus:border-cyan-400 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition outline-none space-y-2">
-                <div id="pasteText" class="text-sm font-bold text-slate-300">
-                    📋 先點這裡一下，再按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼上截圖
-                </div>
-                
-                <div class="flex justify-center items-center gap-2 pt-1">
-                    <button id="directPasteBtn" class="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-bold transition">
-                        📋 點我自動讀取剪貼簿
-                    </button>
-                    <label class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold cursor-pointer transition">
-                        📁 選擇檔案
-                        <input type="file" id="imgUploadInput" accept="image/*" class="hidden">
-                    </label>
-                </div>
-            </div>
-
-            <!-- 預覽圖與辨識結果 -->
-            <div id="imgPreviewContainer" class="hidden flex flex-col items-center gap-1">
-                <img id="imgPreview" class="max-h-24 rounded border border-
+                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="
