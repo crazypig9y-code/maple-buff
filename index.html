@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 祈禱計時與經驗/楓幣效率計算</title>
+    <title>MapleBuff - 楓之谷全方位練功與工具箱</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -14,7 +14,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱 118s 精準計時 + 經驗值與楓幣效率分析</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗/楓幣效率分析 + 內嵌工具</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -133,7 +133,7 @@
             <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重新開始測量經驗</button>
         </section>
 
-        <!-- 3. 💰 手動楓幣效率計算卡片 (新增功能) -->
+        <!-- 3. 💰 手動楓幣效率計算卡片 -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-400">💰 楓幣 (Meso) 效率計算與即時碼錶</span>
@@ -187,6 +187,18 @@
             </div>
 
             <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重新開始測量楓幣</button>
+        </section>
+
+        <!-- 4. 🔗 內嵌外部網頁卡片 (新增功能) -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區</span>
+                <span class="text-[10px] text-cyan-400 font-mono">Morris Tools</span>
+            </div>
+            
+            <div class="w-full h-[500px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden">
+                <iframe src="https://morrisrrrrrrr-svg.github.io/" class="w-full h-full border-0"></iframe>
+            </div>
         </section>
 
     </main>
