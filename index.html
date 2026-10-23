@@ -14,7 +14,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱 118s 精準計時 + 10分/1小時 效率推算</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱 118s 精準計時 + 經驗值碼錶與效率分析</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -77,10 +77,10 @@
             </details>
         </section>
 
-        <!-- 2. 📈 手動經驗值效率計算卡片 (新增 10分 / 1小時 快速預估) -->
+        <!-- 2. 📈 手動經驗值效率計算卡片 (附即時碼錶) -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
             <div class="flex justify-between items-center">
-                <span class="text-xs font-bold text-slate-400">📈 手動經驗值效率計算</span>
+                <span class="text-xs font-bold text-slate-400">📈 經驗值效率計算與即時碼錶</span>
                 <span id="expStateBadge" class="text-[10px] text-cyan-400 font-mono">準備中 (步驟 1)</span>
             </div>
 
@@ -111,9 +111,16 @@
 
             </div>
 
-            <!-- 計算結果顯示面板 -->
+            <!-- 計算與即時碼錶顯示面板 -->
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2.5 text-xs">
-                <div class="grid grid-cols-2 gap-2 text-slate-400">
+                
+                <!-- ⏱️ 即時碼錶顯示區 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2.5 flex justify-between items-center">
+                    <span class="text-slate-300 font-semibold">⏱️ 練功碼錶計時：</span>
+                    <span id="liveStopwatch" class="font-mono font-bold text-base text-cyan-400">00:00:00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-slate-400 pt-1">
                     <div>起始經驗: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
                     <div>結束經驗: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
                     <div>實際耗時: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
@@ -164,226 +171,4 @@
         const audioFile = document.getElementById('audioFile');
         const audioStatus = document.getElementById('audioStatus');
         const testAudioBtn = document.getElementById('testAudioBtn');
-        const audioDurSlider = document.getElementById('audioDurSlider');
-        const audioDurVal = document.getElementById('audioDurVal');
-        const audioVolSlider = document.getElementById('audioVolSlider');
-        const audioVolVal = document.getElementById('audioVolVal');
-        const autoLoopToggle = document.getElementById('autoLoopToggle');
-
-        alertSlider.addEventListener('input', e => alertTimeVal.textContent = e.target.value);
-        audioDurSlider.addEventListener('input', e => audioDurVal.textContent = parseFloat(e.target.value).toFixed(1));
-        audioVolSlider.addEventListener('input', e => audioVolVal.textContent = e.target.value);
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        function initAudioContext() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        audioFile.addEventListener('change', async (e) => {
-            initAudioContext();
-            const file = e.target.files[0];
-            if (!file) return;
-            audioStatus.textContent = "載入中...";
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                customAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                audioStatus.textContent = "✅ 已載入";
-                audioStatus.className = "text-[10px] text-emerald-400 font-bold";
-            } catch {
-                audioStatus.textContent = "❌ 格式錯誤";
-                audioStatus.className = "text-[10px] text-rose-400 font-bold";
-            }
-        });
-
-        function playAlertSound() {
-            initAudioContext();
-            if (!audioCtx) return;
-            const targetDuration = parseFloat(audioDurSlider.value);
-            const volumePercent = parseInt(audioVolSlider.value, 10) / 100;
-
-            if (customAudioBuffer) {
-                const source = audioCtx.createBufferSource();
-                source.buffer = customAudioBuffer;
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.setValueAtTime(volumePercent, audioCtx.currentTime);
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                source.start(0);
-                source.stop(audioCtx.currentTime + targetDuration);
-            } else {
-                let t = audioCtx.currentTime;
-                const end = t + targetDuration;
-                while (t < end) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.frequency.setValueAtTime(880, t);
-                    gain.gain.setValueAtTime(0.3 * volumePercent, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(t);
-                    osc.stop(t + 0.15);
-                    t += 0.3;
-                }
-            }
-        }
-
-        testAudioBtn.addEventListener('click', () => { initAudioContext(); playAlertSound(); });
-
-        function updateUI(remainingSec) {
-            timeDisplay.textContent = formatTime(remainingSec);
-            const alertThreshold = parseInt(alertSlider.value, 10);
-            if (!isRunning) {
-                displayCard.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 text-center";
-                timeDisplay.className = "text-5xl font-mono font-black text-slate-500 tracking-tight";
-                return;
-            }
-            if (remainingSec <= alertThreshold && remainingSec > 0) {
-                displayCard.className = "bg-rose-950/40 border border-rose-500/50 rounded-xl p-3 text-center animate-pulse";
-                timeDisplay.className = "text-5xl font-mono font-black text-rose-400 tracking-tight";
-                statusBadge.textContent = "⚠️ 準備施放祈禱！";
-                statusBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400";
-            } else {
-                displayCard.className = "bg-slate-950 border border-cyan-500/30 rounded-xl p-3 text-center";
-                timeDisplay.className = "text-5xl font-mono font-black text-cyan-400 tracking-tight";
-                statusBadge.textContent = "🟢 Buff 作用中";
-                statusBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400";
-            }
-        }
-
-        function startTimer() {
-            initAudioContext();
-            clearInterval(timerId);
-            targetEndTime = Date.now() + TOTAL_TIME * 1000;
-            isRunning = true;
-            hasAlertedThisCycle = false;
-            updateUI(TOTAL_TIME);
-
-            timerId = setInterval(() => {
-                const now = Date.now();
-                const remainingSec = Math.max(0, Math.ceil((targetEndTime - now) / 1000));
-                const alertThreshold = parseInt(alertSlider.value, 10);
-
-                if (remainingSec === alertThreshold && !hasAlertedThisCycle) {
-                    playAlertSound();
-                    hasAlertedThisCycle = true;
-                }
-
-                if (remainingSec <= 0) {
-                    playAlertSound();
-                    if (autoLoopToggle.checked) {
-                        targetEndTime = Date.now() + TOTAL_TIME * 1000;
-                        hasAlertedThisCycle = false;
-                    } else {
-                        clearInterval(timerId);
-                        isRunning = false;
-                        statusBadge.textContent = "🛑 Buff 結束";
-                        updateUI(0);
-                        return;
-                    }
-                }
-
-                updateUI(remainingSec);
-            }, 200);
-        }
-
-        pauseBtn.addEventListener('click', () => { if (isRunning) { clearInterval(timerId); isRunning = false; statusBadge.textContent = "⏸️ 已暫停"; } });
-        stopBtn.addEventListener('click', () => { clearInterval(timerId); isRunning = false; statusBadge.textContent = "尚未開始"; updateUI(TOTAL_TIME); });
-        startResetBtn.addEventListener('click', startTimer);
-        updateUI(TOTAL_TIME);
-
-        // --- 2. 手動經驗值效率計算邏輯 (含 10分 & 1小時推算) ---
-        let manualExpState = { startVal: null, startTime: null, endVal: null, endTime: null };
-
-        const startExpInput = document.getElementById('startExpInput');
-        const startExpBtn = document.getElementById('startExpBtn');
-        const step1Container = document.getElementById('step1Container');
-
-        const endExpInput = document.getElementById('endExpInput');
-        const endExpBtn = document.getElementById('endExpBtn');
-        const step2Container = document.getElementById('step2Container');
-
-        const expStateBadge = document.getElementById('expStateBadge');
-        const expStartEl = document.getElementById('expStart');
-        const expEndEl = document.getElementById('expEnd');
-        const expDurationEl = document.getElementById('expDuration');
-        const expGainedEl = document.getElementById('expGained');
-        const exp10MinEl = document.getElementById('exp10Min');
-        const expPerHourEl = document.getElementById('expPerHour');
-        const resetExpBtn = document.getElementById('resetExpBtn');
-
-        // 點擊「開始計時」
-        startExpBtn.addEventListener('click', () => {
-            const val = parseInt(startExpInput.value, 10);
-            if (isNaN(val) || val <= 0) {
-                alert("⚠️ 請輸入有效的起始經驗值數字！");
-                return;
-            }
-
-            manualExpState.startVal = val;
-            manualExpState.startTime = Date.now();
-
-            expStartEl.textContent = val.toLocaleString();
-            expStateBadge.textContent = "計時中 (步驟 2)";
-            expStateBadge.className = "text-[10px] text-emerald-400 font-mono";
-
-            step1Container.classList.add('hidden');
-            step2Container.classList.remove('hidden');
-        });
-
-        // 點擊「結束並結算」
-        endExpBtn.addEventListener('click', () => {
-            const val = parseInt(endExpInput.value, 10);
-            if (isNaN(val) || val <= 0) {
-                alert("⚠️ 請輸入有效的結束經驗值數字！");
-                return;
-            }
-
-            manualExpState.endVal = val;
-            manualExpState.endTime = Date.now();
-
-            expEndEl.textContent = val.toLocaleString();
-            expStateBadge.textContent = "計算完成 🎉";
-            expStateBadge.className = "text-[10px] text-cyan-400 font-mono";
-
-            const durationSec = Math.max(1, Math.round((manualExpState.endTime - manualExpState.startTime) / 1000));
-            const gained = manualExpState.endVal - manualExpState.startVal;
-
-            expDurationEl.textContent = `${Math.floor(durationSec / 60)}分${durationSec % 60}秒`;
-            expGainedEl.textContent = gained > 0 ? `+${gained.toLocaleString()}` : gained.toLocaleString();
-
-            // 推算 10 分鐘獲得經驗值 (600秒)
-            const exp10Min = Math.round((gained / durationSec) * 600);
-            exp10MinEl.textContent = `+${exp10Min.toLocaleString()}`;
-
-            // 推算 1 小時獲得經驗值 (3600秒)
-            const expPerHour = Math.round((gained / durationSec) * 3600);
-            expPerHourEl.textContent = `+${expPerHour.toLocaleString()}`;
-        });
-
-        // 重置按鈕
-        resetExpBtn.addEventListener('click', () => {
-            manualExpState = { startVal: null, startTime: null, endVal: null, endTime: null };
-            startExpInput.value = "";
-            endExpInput.value = "";
-            expStartEl.textContent = "-";
-            expEndEl.textContent = "-";
-            expDurationEl.textContent = "-";
-            expGainedEl.textContent = "-";
-            exp10MinEl.textContent = "0";
-            expPerHourEl.textContent = "0";
-
-            step1Container.classList.remove('hidden');
-            step2Container.classList.add('hidden');
-            expStateBadge.textContent = "準備中 (步驟 1)";
-            expStateBadge.className = "text-[10px] text-cyan-400 font-mono";
-        });
-    </script>
-</body>
-</html>
+        const audioDurSlider
