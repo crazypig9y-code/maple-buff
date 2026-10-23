@@ -16,7 +16,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 聊天視窗貼上經驗值分析</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱精準計時（抗背景降速） + 經驗值效率分析</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -49,4 +49,382 @@
                         <span class="text-slate-400">提醒時間</span>
                         <span class="text-cyan-400 font-mono font-bold">剩 <span id="alertTimeVal">15</span> 秒</span>
                     </div>
-                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="
+                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="w-full accent-cyan-500">
+
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">自訂音效</span>
+                        <span id="audioStatus" class="text-[10px] text-slate-500">預設提示音</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="file" id="audioFile" accept="audio/*" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-slate-950">
+                        <button id="testAudioBtn" class="px-2 py-1 bg-slate-800 text-cyan-400 rounded-lg text-[11px] shrink-0">🔊 試聽</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>音量</span><span id="audioVolVal">50</span>%</div>
+                            <input type="range" id="audioVolSlider" min="5" max="100" value="50" class="w-full accent-emerald-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>長度</span><span id="audioDurVal">2.0</span>s</div>
+                            <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">🔁 自動循環模式</span>
+                        <input type="checkbox" id="autoLoopToggle" checked class="accent-cyan-500">
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 2. 📈 經驗值效率計算卡片 (💬 聊天室窗貼上版) -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">📈 練功經驗值效率分析</span>
+                <span id="ocrStatus" class="text-[10px] text-cyan-400 font-mono">Ready</span>
+            </div>
+
+            <!-- 💬 聊天輸入框介面 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                <div id="chatHintText" class="text-xs text-slate-400 font-medium">
+                    💬 請點下方輸入框按 <kbd class="bg-slate-800 text-cyan-400 px-1 py-0.5 rounded">Ctrl + V</kbd> 貼上截圖：
+                </div>
+
+                <div class="flex gap-2 items-center">
+                    <div id="chatInput" contenteditable="true" class="w-full min-h-[42px] max-h-[80px] overflow-y-auto bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg p-2 text-xs text-slate-200 outline-none transition flex items-center gap-1" placeholder="點此貼上圖片..."></div>
+                    <button id="sendBtn" class="px-3 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-lg transition shrink-0">
+                        發送 🚀
+                    </button>
+                </div>
+            </div>
+
+            <!-- 預覽圖與辨識結果 -->
+            <div id="imgPreviewContainer" class="hidden flex flex-col items-center gap-1">
+                <img id="imgPreview" class="max-h-24 rounded border border-slate-800">
+                <div id="ocrRawText" class="text-[10px] text-slate-500 font-mono"></div>
+            </div>
+
+            <!-- 計算結果面板 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+                <div class="grid grid-cols-2 gap-2 text-slate-400">
+                    <div>起始經驗: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>結束經驗: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>測試時間: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>總獲得 EXP: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
+                    <span class="font-bold text-slate-300">⚡ 預估每小時經驗 (EXP/h):</span>
+                    <span id="expPerHour" class="text-base font-mono font-black text-cyan-400">0</span>
+                </div>
+            </div>
+
+            <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置經驗值統計</button>
+        </section>
+
+    </main>
+
+    <footer class="w-full max-w-md text-center py-2 text-[10px] text-slate-500">
+        💡 全新現貨，不用等五十年後的流星雨
+    </footer>
+
+    <!-- JS 邏輯 -->
+    <script>
+        // --- 1. 精準計時器邏輯 (使用 Timestamp 基準，防止切到背景變慢) ---
+        const TOTAL_TIME = 118;
+        let targetEndTime = 0;
+        let timerId = null;
+        let isRunning = false;
+        let audioCtx = null;
+        let hasAlertedThisCycle = false;
+        let customAudioBuffer = null;
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const statusBadge = document.getElementById('statusBadge');
+        const displayCard = document.getElementById('displayCard');
+        const startResetBtn = document.getElementById('startResetBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const alertSlider = document.getElementById('alertSlider');
+        const alertTimeVal = document.getElementById('alertTimeVal');
+        const audioFile = document.getElementById('audioFile');
+        const audioStatus = document.getElementById('audioStatus');
+        const testAudioBtn = document.getElementById('testAudioBtn');
+        const audioDurSlider = document.getElementById('audioDurSlider');
+        const audioDurVal = document.getElementById('audioDurVal');
+        const audioVolSlider = document.getElementById('audioVolSlider');
+        const audioVolVal = document.getElementById('audioVolVal');
+        const autoLoopToggle = document.getElementById('autoLoopToggle');
+
+        alertSlider.addEventListener('input', e => alertTimeVal.textContent = e.target.value);
+        audioDurSlider.addEventListener('input', e => audioDurVal.textContent = parseFloat(e.target.value).toFixed(1));
+        audioVolSlider.addEventListener('input', e => audioVolVal.textContent = e.target.value);
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function initAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        audioFile.addEventListener('change', async (e) => {
+            initAudioContext();
+            const file = e.target.files[0];
+            if (!file) return;
+            audioStatus.textContent = "載入中...";
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                customAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                audioStatus.textContent = "✅ 已載入";
+                audioStatus.className = "text-[10px] text-emerald-400 font-bold";
+            } catch {
+                audioStatus.textContent = "❌ 格式錯誤";
+                audioStatus.className = "text-[10px] text-rose-400 font-bold";
+            }
+        });
+
+        function playAlertSound() {
+            initAudioContext();
+            if (!audioCtx) return;
+            const targetDuration = parseFloat(audioDurSlider.value);
+            const volumePercent = parseInt(audioVolSlider.value, 10) / 100;
+
+            if (customAudioBuffer) {
+                const source = audioCtx.createBufferSource();
+                source.buffer = customAudioBuffer;
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.setValueAtTime(volumePercent, audioCtx.currentTime);
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                source.start(0);
+                source.stop(audioCtx.currentTime + targetDuration);
+            } else {
+                let t = audioCtx.currentTime;
+                const end = t + targetDuration;
+                while (t < end) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.frequency.setValueAtTime(880, t);
+                    gain.gain.setValueAtTime(0.3 * volumePercent, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.15);
+                    t += 0.3;
+                }
+            }
+        }
+
+        testAudioBtn.addEventListener('click', () => { initAudioContext(); playAlertSound(); });
+
+        function updateUI(remainingSec) {
+            timeDisplay.textContent = formatTime(remainingSec);
+            const alertThreshold = parseInt(alertSlider.value, 10);
+            if (!isRunning) {
+                displayCard.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 text-center";
+                timeDisplay.className = "text-5xl font-mono font-black text-slate-500 tracking-tight";
+                return;
+            }
+            if (remainingSec <= alertThreshold && remainingSec > 0) {
+                displayCard.className = "bg-rose-950/40 border border-rose-500/50 rounded-xl p-3 text-center animate-pulse";
+                timeDisplay.className = "text-5xl font-mono font-black text-rose-400 tracking-tight";
+                statusBadge.textContent = "⚠️ 準備施放祈禱！";
+                statusBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400";
+            } else {
+                displayCard.className = "bg-slate-950 border border-cyan-500/30 rounded-xl p-3 text-center";
+                timeDisplay.className = "text-5xl font-mono font-black text-cyan-400 tracking-tight";
+                statusBadge.textContent = "🟢 Buff 作用中";
+                statusBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400";
+            }
+        }
+
+        function startTimer() {
+            initAudioContext();
+            clearInterval(timerId);
+            
+            // 記錄精準的結束時間戳 (以毫秒為單位)，就算切到背景也不會走鐘
+            targetEndTime = Date.now() + TOTAL_TIME * 1000;
+            isRunning = true;
+            hasAlertedThisCycle = false;
+            
+            updateUI(TOTAL_TIME);
+
+            timerId = setInterval(() => {
+                const now = Date.now();
+                const remainingSec = Math.max(0, Math.ceil((targetEndTime - now) / 1000));
+                const alertThreshold = parseInt(alertSlider.value, 10);
+
+                if (remainingSec === alertThreshold && !hasAlertedThisCycle) {
+                    playAlertSound();
+                    hasAlertedThisCycle = true;
+                }
+
+                if (remainingSec <= 0) {
+                    playAlertStatus();
+                    if (autoLoopToggle.checked) {
+                        // 自動循環時重新計算下一輪的結束時間
+                        targetEndTime = Date.now() + TOTAL_TIME * 1000;
+                        hasAlertedThisCycle = false;
+                    } else {
+                        clearInterval(timerId);
+                        isRunning = false;
+                        statusBadge.textContent = "🛑 Buff 結束";
+                        updateUI(0);
+                        return;
+                    }
+                }
+
+                updateUI(remainingSec);
+            }, 200); // 縮短檢查間隔，讓時間更滑順
+        }
+
+        pauseBtn.addEventListener('click', () => { 
+            if (isRunning) { 
+                clearInterval(timerId); 
+                isRunning = false; 
+                statusBadge.textContent = "⏸️ 已暫停";
+                // 這裡可以保留剩餘時間邏輯，此處簡化為重置
+            } 
+        });
+
+        stopBtn.addEventListener('click', () => { 
+            clearInterval(timerId); 
+            isRunning = false; 
+            statusBadge.textContent = "尚未開始";
+            updateUI(TOTAL_TIME); 
+        });
+
+        startResetBtn.addEventListener('click', startTimer);
+        updateUI(TOTAL_TIME);
+
+        // --- 2. 聊天對話框經驗值貼上邏輯 ---
+        let expState = { startExp: null, startTime: null, endExp: null, endTime: null };
+        let pastedImageBlob = null;
+
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatHintText = document.getElementById('chatHintText');
+        const ocrStatus = document.getElementById('ocrStatus');
+        const imgPreview = document.getElementById('imgPreview');
+        const imgPreviewContainer = document.getElementById('imgPreviewContainer');
+        const ocrRawText = document.getElementById('ocrRawText');
+        const expStartEl = document.getElementById('expStart');
+        const expEndEl = document.getElementById('expEnd');
+        const expDurationEl = document.getElementById('expDuration');
+        const expGainedEl = document.getElementById('expGained');
+        const expPerHourEl = document.getElementById('expPerHour');
+        const resetExpBtn = document.getElementById('resetExpBtn');
+
+        chatInput.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    pastedImageBlob = item.getAsFile();
+                    chatInput.innerHTML = "<span class='text-emerald-400 font-bold'>📷 圖片已貼上！請點右側『發送』按鈕</span>";
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            if (!pastedImageBlob) {
+                alert("⚠️ 請先在輸入框內按下 Ctrl + V 貼上圖片！");
+                return;
+            }
+            processImageBlob(pastedImageBlob);
+            chatInput.innerHTML = "";
+            pastedImageBlob = null;
+        });
+
+        async function processImageBlob(blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            imgPreview.src = imageUrl;
+            imgPreviewContainer.classList.remove('hidden');
+
+            ocrStatus.textContent = "⏳ 辨識中...";
+            ocrStatus.className = "text-[10px] text-amber-400 font-mono animate-pulse";
+
+            try {
+                const worker = await Tesseract.createWorker('eng');
+                await worker.setParameters({
+                    tessedit_char_whitelist: '0123456789[],. %()'
+                });
+                const { data: { text } } = await worker.recognize(blob);
+                await worker.terminate();
+
+                ocrRawText.textContent = `原始辨識結果: ${text.trim()}`;
+
+                const cleanNumStr = text.replace(/[^0-9]/g, '');
+                const extractedExp = parseInt(cleanNumStr, 10);
+
+                if (isNaN(extractedExp) || extractedExp <= 0) {
+                    alert("⚠️ 辨識失敗！請確保截圖包含清晰的經驗值數字！");
+                    ocrStatus.textContent = "❌ 辨識失敗";
+                    ocrStatus.className = "text-[10px] text-rose-400 font-mono";
+                    return;
+                }
+
+                ocrStatus.textContent = "✅ 辨識成功";
+                ocrStatus.className = "text-[10px] text-emerald-400 font-mono";
+
+                processExpData(extractedExp);
+
+            } catch (err) {
+                console.error(err);
+                ocrStatus.textContent = "❌ 辨識錯誤";
+                ocrStatus.className = "text-[10px] text-rose-400 font-mono";
+            }
+        }
+
+        function processExpData(expVal) {
+            const now = new Date();
+
+            if (expState.startExp === null) {
+                expState.startExp = expVal;
+                expState.startTime = now;
+                expStartEl.textContent = expVal.toLocaleString();
+                chatHintText.innerHTML = "🟢 <span class='text-emerald-400 font-bold'>第一次紀錄成功，計時中...</span><br><span class='text-[11px] text-slate-400'>練功結束請再貼上第二次截圖並點發送結算：</span>";
+            } else {
+                expState.endExp = expVal;
+                expState.endTime = now;
+                expEndEl.textContent = expVal.toLocaleString();
+
+                const durationSec = Math.max(1, Math.round((expState.endTime - expState.startTime) / 1000));
+                const gained = expState.endExp - expState.startExp;
+
+                expDurationEl.textContent = `${Math.floor(durationSec / 60)}分${durationSec % 60}秒`;
+                expGainedEl.textContent = gained > 0 ? `+${gained.toLocaleString()}` : gained.toLocaleString();
+
+                const expPerHour = Math.round((gained / durationSec) * 3600);
+                expPerHourEl.textContent = expPerHour.toLocaleString();
+
+                chatHintText.innerHTML = "🎉 <span class='text-cyan-400 font-bold'>效率計算完成！</span><br><span class='text-[11px] text-slate-400'>點擊重置按鈕可重新開始測試：</span>";
+            }
+        }
+
+        resetExpBtn.addEventListener('click', () => {
+            expState = { startExp: null, startTime: null, endExp: null, endTime: null };
+            pastedImageBlob = null;
+            expStartEl.textContent = "-";
+            expEndEl.textContent = "-";
+            expDurationEl.textContent = "-";
+            expGainedEl.textContent = "-";
+            expPerHourEl.textContent = "0";
+            imgPreviewContainer.classList.add('hidden');
+            ocrRawText.textContent = "";
+            chatInput.innerHTML = "";
+            chatHintText.innerHTML = "💬 請點下方輸入框按 <kbd class='bg-slate-800 text-cyan-400 px-1 py-0.5 rounded'>Ctrl + V</kbd> 貼上截圖：";
+            ocrStatus.textContent = "Ready";
+            ocrStatus.className = "text-[10px] text-cyan-400 font-mono";
+        });
+    </script>
+</body>
+</html>
