@@ -14,7 +14,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱 118s 精準計時 + 手動經驗值效率分析</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱 118s 精準計時 + 10分/1小時 效率推算</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -77,7 +77,7 @@
             </details>
         </section>
 
-        <!-- 2. 📈 手動經驗值效率計算卡片 -->
+        <!-- 2. 📈 手動經驗值效率計算卡片 (新增 10分 / 1小時 快速預估) -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-400">📈 手動經驗值效率計算</span>
@@ -112,17 +112,24 @@
             </div>
 
             <!-- 計算結果顯示面板 -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2.5 text-xs">
                 <div class="grid grid-cols-2 gap-2 text-slate-400">
                     <div>起始經驗: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
                     <div>結束經驗: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
-                    <div>練功時間: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>實際耗時: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
                     <div>獲得 EXP: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
                 </div>
 
+                <!-- ⏱️ 10分鐘預估 -->
+                <div class="border-t border-slate-800/80 pt-2 flex justify-between items-center">
+                    <span class="text-slate-300">⏱️ 預估 10 分鐘獲得：</span>
+                    <span id="exp10Min" class="font-mono font-bold text-amber-400">0</span>
+                </div>
+
+                <!-- ⏰ 1小時預估 (EXP/h) -->
                 <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
-                    <span class="font-bold text-slate-300">⚡ 預估每小時經驗 (EXP/h):</span>
-                    <span id="expPerHour" class="text-base font-mono font-black text-cyan-400">0</span>
+                    <span class="font-bold text-slate-200">⏰ 預估 1 小時獲得 (EXP/h)：</span>
+                    <span id="expPerHour" class="text-sm font-mono font-black text-cyan-400">0</span>
                 </div>
             </div>
 
@@ -291,7 +298,7 @@
         startResetBtn.addEventListener('click', startTimer);
         updateUI(TOTAL_TIME);
 
-        // --- 2. 手動輸入經驗值效率計算邏輯 ---
+        // --- 2. 手動經驗值效率計算邏輯 (含 10分 & 1小時推算) ---
         let manualExpState = { startVal: null, startTime: null, endVal: null, endTime: null };
 
         const startExpInput = document.getElementById('startExpInput');
@@ -307,6 +314,7 @@
         const expEndEl = document.getElementById('expEnd');
         const expDurationEl = document.getElementById('expDuration');
         const expGainedEl = document.getElementById('expGained');
+        const exp10MinEl = document.getElementById('exp10Min');
         const expPerHourEl = document.getElementById('expPerHour');
         const resetExpBtn = document.getElementById('resetExpBtn');
 
@@ -325,7 +333,6 @@
             expStateBadge.textContent = "計時中 (步驟 2)";
             expStateBadge.className = "text-[10px] text-emerald-400 font-mono";
 
-            // 切換畫面：隱藏步驟1，顯示步驟2
             step1Container.classList.add('hidden');
             step2Container.classList.remove('hidden');
         });
@@ -345,16 +352,19 @@
             expStateBadge.textContent = "計算完成 🎉";
             expStateBadge.className = "text-[10px] text-cyan-400 font-mono";
 
-            // 計算時間差 (秒)
             const durationSec = Math.max(1, Math.round((manualExpState.endTime - manualExpState.startTime) / 1000));
             const gained = manualExpState.endVal - manualExpState.startVal;
 
             expDurationEl.textContent = `${Math.floor(durationSec / 60)}分${durationSec % 60}秒`;
             expGainedEl.textContent = gained > 0 ? `+${gained.toLocaleString()}` : gained.toLocaleString();
 
-            // 計算每小時 EXP
+            // 推算 10 分鐘獲得經驗值 (600秒)
+            const exp10Min = Math.round((gained / durationSec) * 600);
+            exp10MinEl.textContent = `+${exp10Min.toLocaleString()}`;
+
+            // 推算 1 小時獲得經驗值 (3600秒)
             const expPerHour = Math.round((gained / durationSec) * 3600);
-            expPerHourEl.textContent = expPerHour.toLocaleString();
+            expPerHourEl.textContent = `+${expPerHour.toLocaleString()}`;
         });
 
         // 重置按鈕
@@ -366,6 +376,7 @@
             expEndEl.textContent = "-";
             expDurationEl.textContent = "-";
             expGainedEl.textContent = "-";
+            exp10MinEl.textContent = "0";
             expPerHourEl.textContent = "0";
 
             step1Container.classList.remove('hidden');
