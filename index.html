@@ -16,7 +16,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖分析 (Ctrl+V)</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖分析 (Ctrl+V / 上傳)</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -79,13 +79,64 @@
             </details>
         </section>
 
-        <!-- 2. 📈 經驗值效率計算卡片 (新增功能) -->
+        <!-- 2. 📈 經驗值效率計算卡片 -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-400">📈 練功經驗值效率分析</span>
                 <span id="ocrStatus" class="text-[10px] text-cyan-400 font-mono">Ready</span>
             </div>
 
-            <!-- 貼上區域 -->
-            <div id="pasteZone" tabindex="0" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition">
-                <div class="text-sm font-bold text-slate-300">📋 點擊此處並按下 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼
+            <!-- 貼上與上傳區域 -->
+            <div id="pasteZone" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition relative">
+                <div id="pasteText" class="text-sm font-bold text-slate-300">
+                    📋 點此處按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼上截圖<br>
+                    <span class="text-xs text-slate-500 font-normal">或點擊選擇檔案上傳</span>
+                </div>
+                <!-- 隱藏的圖片選擇器 -->
+                <input type="file" id="imgUploadInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+            </div>
+
+            <!-- 預覽圖 -->
+            <div id="imgPreviewContainer" class="hidden flex justify-center">
+                <img id="imgPreview" class="max-h-24 rounded border border-slate-800">
+            </div>
+
+            <!-- 計算結果面板 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+                <div class="grid grid-cols-2 gap-2 text-slate-400">
+                    <div>起始經驗: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>結束經驗: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>測試時間: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>總獲得 EXP: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
+                    <span class="font-bold text-slate-300">⚡ 預估每小時經驗 (EXP/h):</span>
+                    <span id="expPerHour" class="text-base font-mono font-black text-cyan-400">0</span>
+                </div>
+            </div>
+
+            <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置經驗值統計</button>
+        </section>
+
+    </main>
+
+    <footer class="w-full max-w-md text-center py-2 text-[10px] text-slate-500">
+        💡 全新現貨，不用等五十年後的流星雨
+    </footer>
+
+    <!-- JS 邏輯 -->
+    <script>
+        // --- 1. 計時器邏輯 ---
+        const TOTAL_TIME = 118;
+        let remainingTime = TOTAL_TIME;
+        let timerId = null;
+        let isRunning = false;
+        let audioCtx = null;
+        let hasAlertedThisCycle = false;
+        let customAudioBuffer = null;
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const statusBadge = document.getElementById('statusBadge');
+        const displayCard = document.getElementById('displayCard');
+        const startResetBtn = document.getElementById('startReset
