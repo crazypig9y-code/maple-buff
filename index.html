@@ -204,7 +204,7 @@
             <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置楓幣測量</button>
         </section>
 
-        <!-- 【格 5 & 格 6】：內嵌網頁專區 (長寬放大兩倍: 高度 1700px) -->
+        <!-- 【格 5 & 格 6】：內嵌網頁專區 -->
         <section class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-2">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-400">🌐 楓之谷資料站</span>
@@ -221,7 +221,7 @@
     </main>
 
     <footer class="w-full max-w-5xl text-center py-2 text-[10px] text-slate-500">
-        💡 豬豬製作
+        💡 全新現貨，不用等五十年後的流星雨
     </footer>
 
     <!-- JS 邏輯 -->
@@ -234,16 +234,16 @@
             isIframeVisible = !isIframeVisible;
             if (isIframeVisible) {
                 wrapper.style.display = 'block';
-                btn.textContent = '📂 隱藏內嵌網頁';
+                btn.textContent = '📂 隱藏';
                 btn.className = 'text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1 rounded-lg transition font-bold';
             } else {
                 wrapper.style.display = 'none';
-                btn.textContent = '📁 開啟內嵌網頁';
+                btn.textContent = '📁 開啟';
                 btn.className = 'text-xs bg-cyan-600 hover:bg-cyan-500 text-slate-950 px-3 py-1 rounded-lg transition font-bold';
             }
         }
 
-        // --- 1. 118s 精準計時器邏輯 ---
+        // --- 1. 118s 精準計時器邏輯 (修復背景音效防攔截) ---
         const TOTAL_TIME = 118;
         let targetEndTime = 0;
         let timerId = null;
@@ -303,6 +303,12 @@
         function playAlertSound() {
             initAudioContext();
             if (!audioCtx) return;
+
+            // 觸發音效引擎背景休眠喚醒
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
             const targetDuration = parseFloat(audioDurSlider.value);
             const volumePercent = parseInt(audioVolSlider.value, 10) / 100;
 
