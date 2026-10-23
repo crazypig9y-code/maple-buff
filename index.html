@@ -16,7 +16,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖即時分析 (Win+Shift+S 截圖後直接 Ctrl+V)</p>
+        <p class="text-xs text-slate-400 mt-1">祈禱計時 + 經驗值截圖即時分析</p>
     </header>
 
     <main class="w-full max-w-md space-y-4">
@@ -87,82 +87,22 @@
             </div>
 
             <!-- 貼上與上傳區域 -->
-            <div id="pasteZone" class="border-2 border-dashed border-slate-700 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition relative">
+            <div id="pasteZone" tabindex="0" class="border-2 border-dashed border-slate-700 focus:border-cyan-400 hover:border-cyan-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/50 transition outline-none space-y-2">
                 <div id="pasteText" class="text-sm font-bold text-slate-300">
-                    📋 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Win + Shift + S</kbd> 截圖後直接按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd><br>
-                    <span class="text-xs text-slate-500 font-normal">（也可以點擊此區選擇檔案）</span>
+                    📋 先點這裡一下，再按 <kbd class="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">Ctrl + V</kbd> 貼上截圖
                 </div>
-                <input type="file" id="imgUploadInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                
+                <div class="flex justify-center items-center gap-2 pt-1">
+                    <button id="directPasteBtn" class="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-bold transition">
+                        📋 點我自動讀取剪貼簿
+                    </button>
+                    <label class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold cursor-pointer transition">
+                        📁 選擇檔案
+                        <input type="file" id="imgUploadInput" accept="image/*" class="hidden">
+                    </label>
+                </div>
             </div>
 
             <!-- 預覽圖與辨識結果 -->
             <div id="imgPreviewContainer" class="hidden flex flex-col items-center gap-1">
-                <img id="imgPreview" class="max-h-24 rounded border border-slate-800">
-                <div id="ocrRawText" class="text-[10px] text-slate-500 font-mono"></div>
-            </div>
-
-            <!-- 計算結果面板 -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
-                <div class="grid grid-cols-2 gap-2 text-slate-400">
-                    <div>起始經驗: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
-                    <div>結束經驗: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
-                    <div>測試時間: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
-                    <div>總獲得 EXP: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
-                </div>
-
-                <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
-                    <span class="font-bold text-slate-300">⚡ 預估每小時經驗 (EXP/h):</span>
-                    <span id="expPerHour" class="text-base font-mono font-black text-cyan-400">0</span>
-                </div>
-            </div>
-
-            <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置經驗值統計</button>
-        </section>
-
-    </main>
-
-    <footer class="w-full max-w-md text-center py-2 text-[10px] text-slate-500">
-        💡 全新現貨，不用等五十年後的流星雨
-    </footer>
-
-    <!-- JS 邏輯 -->
-    <script>
-        // --- 1. 計時器邏輯 ---
-        const TOTAL_TIME = 118;
-        let remainingTime = TOTAL_TIME;
-        let timerId = null;
-        let isRunning = false;
-        let audioCtx = null;
-        let hasAlertedThisCycle = false;
-        let customAudioBuffer = null;
-
-        const timeDisplay = document.getElementById('timeDisplay');
-        const statusBadge = document.getElementById('statusBadge');
-        const displayCard = document.getElementById('displayCard');
-        const startResetBtn = document.getElementById('startResetBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const alertSlider = document.getElementById('alertSlider');
-        const alertTimeVal = document.getElementById('alertTimeVal');
-        const audioFile = document.getElementById('audioFile');
-        const audioStatus = document.getElementById('audioStatus');
-        const testAudioBtn = document.getElementById('testAudioBtn');
-        const audioDurSlider = document.getElementById('audioDurSlider');
-        const audioDurVal = document.getElementById('audioDurVal');
-        const audioVolSlider = document.getElementById('audioVolSlider');
-        const audioVolVal = document.getElementById('audioVolVal');
-        const autoLoopToggle = document.getElementById('autoLoopToggle');
-
-        alertSlider.addEventListener('input', e => alertTimeVal.textContent = e.target.value);
-        audioDurSlider.addEventListener('input', e => audioDurVal.textContent = parseFloat(e.target.value).toFixed(1));
-        audioVolSlider.addEventListener('input', e => audioVolVal.textContent = e.target.value);
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        function initAudioContext() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state
+                <img id="imgPreview" class="max-h-24 rounded border border-
