@@ -7,7 +7,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 讓內嵌網頁隨容器縮放的關鍵樣式 */
         .responsive-iframe-container {
             position: relative;
             width: 100%;
@@ -31,7 +30,7 @@
         <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">六宮格儀表板 + 自適應內容縮放</p>
+        <p class="text-xs text-slate-400 mt-1">六宮格儀表板 + 內嵌網頁收合與大尺寸顯示</p>
     </header>
 
     <!-- 六宮格 Grid 佈局 (2 欄 × 3 排) -->
@@ -205,14 +204,16 @@
             <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置楓幣測量</button>
         </section>
 
-        <!-- 【格 5 & 格 6】：內嵌網頁專區 (橫跨兩格 col-span-2，支援內容等比例縮放) -->
+        <!-- 【格 5 & 格 6】：內嵌網頁專區 (橫跨兩格 col-span-2，支援大尺寸與顯示/隱藏切換) -->
         <section class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-2">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區 (格子 5 + 6)</span>
-                <span class="text-[10px] text-cyan-400 font-mono">Auto Scaling Active</span>
+                <button onclick="toggleIframeVisibility()" id="toggleIframeBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1 rounded-lg transition font-bold">
+                    📂 隱藏內嵌網頁
+                </button>
             </div>
             
-            <div class="w-full h-[500px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden responsive-iframe-container">
+            <div id="iframeWrapper" class="w-full h-[850px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden responsive-iframe-container transition-all duration-300">
                 <iframe src="https://morrisrrrrrrr-svg.github.io/" class="responsive-iframe"></iframe>
             </div>
         </section>
@@ -225,6 +226,23 @@
 
     <!-- JS 邏輯 -->
     <script>
+        // --- 內嵌網頁顯示/隱藏切換 ---
+        let isIframeVisible = true;
+        function toggleIframeVisibility() {
+            const wrapper = document.getElementById('iframeWrapper');
+            const btn = document.getElementById('toggleIframeBtn');
+            isIframeVisible = !isIframeVisible;
+            if (isIframeVisible) {
+                wrapper.style.display = 'block';
+                btn.textContent = '📂 隱藏內嵌網頁';
+                btn.className = 'text-xs bg-slate-800 hover:bg-slate-700 text-cyan-400 px-3 py-1 rounded-lg transition font-bold';
+            } else {
+                wrapper.style.display = 'none';
+                btn.textContent = '📁 開啟內嵌網頁';
+                btn.className = 'text-xs bg-cyan-600 hover:bg-cyan-500 text-slate-950 px-3 py-1 rounded-lg transition font-bold';
+            }
+        }
+
         // --- 1. 118s 精準計時器邏輯 ---
         const TOTAL_TIME = 118;
         let targetEndTime = 0;
