@@ -3,248 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapleBuff - 楓之谷自適應視窗練功小幫手</title>
+    <title>MapleBuff - 楓之谷六宮格練功儀表板</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 讓內嵌網頁隨容器縮放的關鍵樣式 */
+        .responsive-iframe-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .responsive-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4 selection:bg-cyan-500 selection:text-slate-950">
 
     <!-- 頂部標題 -->
-    <header class="w-full max-w-6xl text-center py-4">
-        <h1 class="text-3xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            ✨ MapleBuff 自由調整版練功小幫手 ✨
+    <header class="w-full max-w-5xl text-center py-2">
+        <h1 class="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            ✨ MapleBuff 練功小幫手 ✨
         </h1>
-        <p class="text-xs text-slate-400 mt-1">祈禱精準計時 + 經驗/楓幣效率分析 + 視窗大小自由切換</p>
+        <p class="text-xs text-slate-400 mt-1">六宮格儀表板 + 自適應內容縮放</p>
     </header>
 
-    <!-- 主體區塊：電腦版雙欄 (Grid) -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <!-- 六宮格 Grid 佈局 (2 欄 × 3 排) -->
+    <main class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4 my-auto">
         
-        <!-- 左側直欄 -->
-        <div class="space-y-4">
+        <!-- 【格 1 & 格 2】：祈禱計時器 (橫跨兩格 col-span-2) -->
+        <section class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">🕒 祈禱 118s 精準計時器 (格子 1 + 2)</span>
+                <span id="statusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">尚未開始</span>
+            </div>
+
+            <div id="displayCard" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-center">
+                <div id="timeDisplay" class="text-5xl font-mono font-black text-cyan-400 tracking-tight">01:58</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button id="startResetBtn" class="col-span-2 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition">
+                    🚀 開始 / 重新計時 (118s)
+                </button>
+                <button id="pauseBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs">⏸️ 暫停</button>
+                <button id="stopBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-rose-400 font-bold text-xs">⏹️ 重置</button>
+            </div>
+
+            <details class="text-xs space-y-2 pt-1 border-t border-slate-800/80">
+                <summary class="cursor-pointer text-slate-400 font-semibold hover:text-slate-200">⚙️ 音效與警報設定</summary>
+                <div class="space-y-2 pt-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">提醒時間</span>
+                        <span class="text-cyan-400 font-mono font-bold">剩 <span id="alertTimeVal">15</span> 秒</span>
+                    </div>
+                    <input type="range" id="alertSlider" min="5" max="50" value="15" class="w-full accent-cyan-500">
+
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">自訂音效</span>
+                        <span id="audioStatus" class="text-[10px] text-slate-500">預設提示音</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="file" id="audioFile" accept="audio/*" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-slate-950">
+                        <button id="testAudioBtn" class="px-2 py-1 bg-slate-800 text-cyan-400 rounded-lg text-[11px] shrink-0">🔊 試聽</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>音量</span><span id="audioVolVal">50</span>%</div>
+                            <input type="range" id="audioVolSlider" min="5" max="100" value="50" class="w-full accent-emerald-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400"><span>長度</span><span id="audioDurVal">2.0</span>s</div>
+                            <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-slate-400">🔁 自動循環模式</span>
+                        <input type="checkbox" id="autoLoopToggle" checked class="accent-cyan-500">
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 【格 3】：經驗值效率計算 (第二排左側) -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">📈 經驗值效率計算 (格子 3)</span>
+                <span id="expStateBadge" class="text-[10px] text-cyan-400 font-mono">步驟 1</span>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3 text-xs">
+                <div id="step1Container" class="space-y-1.5">
+                    <label class="block text-slate-300 font-semibold">1️⃣ 起始經驗值：</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="startExpInput" placeholder="例如: 12345678" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg px-2.5 py-1.5 text-slate-200 outline-none font-mono">
+                        <button id="startExpBtn" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition shrink-0">
+                            計時 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <div id="step2Container" class="space-y-1.5 hidden">
+                    <label class="block text-slate-300 font-semibold">2️⃣ 結束經驗值：</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="endExpInput" placeholder="例如: 12456789" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg px-2.5 py-1.5 text-slate-200 outline-none font-mono">
+                        <button id="endExpBtn" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg transition shrink-0">
+                            結算 🏁
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 flex justify-between items-center">
+                    <span class="text-slate-300 font-semibold">⏱️ 經驗碼錶：</span>
+                    <span id="liveStopwatch" class="font-mono font-bold text-sm text-cyan-400">00:00:00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-1 text-slate-400 pt-1">
+                    <div>起始: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>結束: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>耗時: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>獲得: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
+                </div>
+
+                <div class="border-t border-slate-800/80 pt-1.5 flex justify-between items-center">
+                    <span class="text-slate-300">⏱️ 預估 10 分鐘：</span>
+                    <span id="exp10Min" class="font-mono font-bold text-amber-400">0</span>
+                </div>
+
+                <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
+                    <span class="font-bold text-slate-200">⏰ 預估 1 小時 (EXP/h)：</span>
+                    <span id="expPerHour" class="text-sm font-mono font-black text-cyan-400">0</span>
+                </div>
+            </div>
+
+            <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置經驗測量</button>
+        </section>
+
+        <!-- 【格 4】：楓幣效率計算 (第二排右側) -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">💰 楓幣效率計算 (格子 4)</span>
+                <span id="mesoStateBadge" class="text-[10px] text-amber-400 font-mono">步驟 1</span>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3 text-xs">
+                <div id="mesoStep1Container" class="space-y-1.5">
+                    <label class="block text-slate-300 font-semibold">1️⃣ 起始楓幣：</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="startMesoInput" placeholder="例如: 1000000" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-slate-200 outline-none font-mono">
+                        <button id="startMesoBtn" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition shrink-0">
+                            計時 🚀
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mesoStep2Container" class="space-y-1.5 hidden">
+                    <label class="block text-slate-300 font-semibold">2️⃣ 結束楓幣：</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="endMesoInput" placeholder="例如: 1200000" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-slate-200 outline-none font-mono">
+                        <button id="endMesoBtn" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition shrink-0">
+                            結算 🏁
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 flex justify-between items-center">
+                    <span class="text-slate-300 font-semibold">⏱️ 楓幣碼錶：</span>
+                    <span id="mesoLiveStopwatch" class="font-mono font-bold text-sm text-amber-400">00:00:00</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-1 text-slate-400 pt-1">
+                    <div>起始: <span id="mesoStart" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>結束: <span id="mesoEnd" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>耗時: <span id="mesoDuration" class="text-slate-200 font-mono font-bold">-</span></div>
+                    <div>獲得: <span id="mesoGained" class="text-emerald-400 font-mono font-bold">-</span></div>
+                </div>
+
+                <div class="border-t border-slate-800/80 pt-1.5 flex justify-between items-center">
+                    <span class="text-slate-300">⏱️ 預估 10 分鐘：</span>
+                    <span id="meso10Min" class="font-mono font-bold text-amber-400">0</span>
+                </div>
+
+                <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
+                    <span class="font-bold text-slate-200">⏰ 預估 1 小時 (Meso/h)：</span>
+                    <span id="mesoPerHour" class="text-sm font-mono font-black text-amber-400">0</span>
+                </div>
+            </div>
+
+            <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置楓幣測量</button>
+        </section>
+
+        <!-- 【格 5 & 格 6】：內嵌網頁專區 (橫跨兩格 col-span-2，支援內容等比例縮放) -->
+        <section class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區 (格子 5 + 6)</span>
+                <span class="text-[10px] text-cyan-400 font-mono">Auto Scaling Active</span>
+            </div>
             
-            <!-- 1. 祈禱計時卡片 -->
-            <section id="cardTimer" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3 transition-all duration-300">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-400">🕒 祈禱 118s 計時器</span>
-                    <div class="flex items-center gap-2">
-                        <span id="statusBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400">尚未開始</span>
-                        <button onclick="toggleCardSize('cardTimer')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-400 px-2 py-0.5 rounded transition">📏 放大/縮小</button>
-                    </div>
-                </div>
-
-                <div id="displayCard" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-center">
-                    <div id="timeDisplay" class="text-5xl font-mono font-black text-cyan-400 tracking-tight">01:58</div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="startResetBtn" class="col-span-2 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition">
-                        🚀 開始 / 重新計時 (118s)
-                    </button>
-                    <button id="pauseBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs">⏸️ 暫停</button>
-                    <button id="stopBtn" class="py-1.5 px-3 rounded-lg bg-slate-800 text-rose-400 font-bold text-xs">⏹️ 重置</button>
-                </div>
-
-                <details class="text-xs space-y-2 pt-1 border-t border-slate-800/80">
-                    <summary class="cursor-pointer text-slate-400 font-semibold hover:text-slate-200">⚙️ 音效與警報設定</summary>
-                    <div class="space-y-2 pt-2">
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">提醒時間</span>
-                            <span class="text-cyan-400 font-mono font-bold">剩 <span id="alertTimeVal">15</span> 秒</span>
-                        </div>
-                        <input type="range" id="alertSlider" min="5" max="50" value="15" class="w-full accent-cyan-500">
-
-                        <div class="flex justify-between items-center pt-1">
-                            <span class="text-slate-400">自訂音效</span>
-                            <span id="audioStatus" class="text-[10px] text-slate-500">預設提示音</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="file" id="audioFile" accept="audio/*" class="w-full text-[11px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:bg-cyan-500 file:text-slate-950">
-                            <button id="testAudioBtn" class="px-2 py-1 bg-slate-800 text-cyan-400 rounded-lg text-[11px] shrink-0">🔊 試聽</button>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            <div>
-                                <div class="flex justify-between text-[11px] text-slate-400"><span>音量</span><span id="audioVolVal">50</span>%</div>
-                                <input type="range" id="audioVolSlider" min="5" max="100" value="50" class="w-full accent-emerald-500">
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-[11px] text-slate-400"><span>長度</span><span id="audioDurVal">2.0</span>s</div>
-                                <input type="range" id="audioDurSlider" min="0.5" max="10.0" step="0.5" value="2.0" class="w-full accent-emerald-500">
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between items-center pt-1">
-                            <span class="text-slate-400">🔁 自動循環模式</span>
-                            <input type="checkbox" id="autoLoopToggle" checked class="accent-cyan-500">
-                        </div>
-                    </div>
-                </details>
-            </section>
-
-            <!-- 2. 📈 手動經驗值效率計算卡片 -->
-            <section id="cardExp" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3 transition-all duration-300">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-400">📈 經驗值效率與即時碼錶</span>
-                    <div class="flex items-center gap-2">
-                        <span id="expStateBadge" class="text-[10px] text-cyan-400 font-mono">準備中 (步驟 1)</span>
-                        <button onclick="toggleCardSize('cardExp')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-400 px-2 py-0.5 rounded transition">📏 放大/縮小</button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3 text-xs">
-                    <div id="step1Container" class="space-y-1.5">
-                        <label class="block text-slate-300 font-semibold">1️⃣ 輸入練功「開始」時的經驗值：</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="startExpInput" placeholder="例如: 12345678" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg px-3 py-2 text-slate-200 outline-none font-mono">
-                            <button id="startExpBtn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition shrink-0">
-                                開始計時 🚀
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="step2Container" class="space-y-1.5 hidden">
-                        <label class="block text-slate-300 font-semibold">2️⃣ 輸入練功「結束」時的經驗值：</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="endExpInput" placeholder="例如: 12456789" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded-lg px-3 py-2 text-slate-200 outline-none font-mono">
-                            <button id="endExpBtn" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg transition shrink-0">
-                                結束並結算 🏁
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 flex justify-between items-center">
-                        <span class="text-slate-300 font-semibold">⏱️ 經驗碼錶：</span>
-                        <span id="liveStopwatch" class="font-mono font-bold text-sm text-cyan-400">00:00:00</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-slate-400 pt-1">
-                        <div>起始: <span id="expStart" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>結束: <span id="expEnd" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>耗時: <span id="expDuration" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>獲得: <span id="expGained" class="text-emerald-400 font-mono font-bold">-</span></div>
-                    </div>
-
-                    <div class="border-t border-slate-800/80 pt-1.5 flex justify-between items-center">
-                        <span class="text-slate-300">⏱️ 10分鐘預估：</span>
-                        <span id="exp10Min" class="font-mono font-bold text-amber-400">0</span>
-                    </div>
-
-                    <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
-                        <span class="font-bold text-slate-200">⏰ 1小時預估 (EXP/h)：</span>
-                        <span id="expPerHour" class="text-sm font-mono font-black text-cyan-400">0</span>
-                    </div>
-                </div>
-
-                <button id="resetExpBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置經驗測量</button>
-            </section>
-
-        </div>
-
-        <!-- 右側直欄 -->
-        <div class="space-y-4">
-            
-            <!-- 3. 💰 手動楓幣效率計算卡片 -->
-            <section id="cardMeso" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3 transition-all duration-300">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-400">💰 楓幣 (Meso) 效率與即時碼錶</span>
-                    <div class="flex items-center gap-2">
-                        <span id="mesoStateBadge" class="text-[10px] text-amber-400 font-mono">準備中 (步驟 1)</span>
-                        <button onclick="toggleCardSize('cardMeso')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-400 px-2 py-0.5 rounded transition">📏 放大/縮小</button>
-                    </div>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3 text-xs">
-                    <div id="mesoStep1Container" class="space-y-1.5">
-                        <label class="block text-slate-300 font-semibold">1️⃣ 輸入練功「開始」時的楓幣：</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="startMesoInput" placeholder="例如: 1000000" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-lg px-3 py-2 text-slate-200 outline-none font-mono">
-                            <button id="startMesoBtn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg transition shrink-0">
-                                開始計時 🚀
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="mesoStep2Container" class="space-y-1.5 hidden">
-                        <label class="block text-slate-300 font-semibold">2️⃣ 輸入練功「結束」時的楓幣：</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="endMesoInput" placeholder="例如: 1200000" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-lg px-3 py-2 text-slate-200 outline-none font-mono">
-                            <button id="endMesoBtn" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition shrink-0">
-                                結束並結算 🏁
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 flex justify-between items-center">
-                        <span class="text-slate-300 font-semibold">⏱️ 楓幣碼錶：</span>
-                        <span id="mesoLiveStopwatch" class="font-mono font-bold text-sm text-amber-400">00:00:00</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-slate-400 pt-1">
-                        <div>起始: <span id="mesoStart" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>結束: <span id="mesoEnd" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>耗時: <span id="mesoDuration" class="text-slate-200 font-mono font-bold">-</span></div>
-                        <div>獲得: <span id="mesoGained" class="text-emerald-400 font-mono font-bold">-</span></div>
-                    </div>
-
-                    <div class="border-t border-slate-800/80 pt-1.5 flex justify-between items-center">
-                        <span class="text-slate-300">⏱️ 10分鐘預估：</span>
-                        <span id="meso10Min" class="font-mono font-bold text-amber-400">0</span>
-                    </div>
-
-                    <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
-                        <span class="font-bold text-slate-200">⏰ 1小時預估 (Meso/h)：</span>
-                        <span id="mesoPerHour" class="text-sm font-mono font-black text-amber-400">0</span>
-                    </div>
-                </div>
-
-                <button id="resetMesoBtn" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">🔄 重置楓幣測量</button>
-            </section>
-
-            <!-- 4. 🌐 內嵌外部網頁卡片 (可自由切換iframe高度) -->
-            <section id="cardFrame" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3 transition-all duration-300">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-400">🌐 內嵌工具專區</span>
-                    <button onclick="toggleFrameSize()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-400 px-2 py-0.5 rounded transition">📏 放大/縮小視窗</button>
-                </div>
-                
-                <div id="frameContainer" class="w-full h-[400px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300">
-                    <iframe src="https://morrisrrrrrrr-svg.github.io/" class="w-full h-full border-0"></iframe>
-                </div>
-            </section>
-
-        </div>
+            <div class="w-full h-[500px] bg-slate-950 border border-slate-800 rounded-xl overflow-hidden responsive-iframe-container">
+                <iframe src="https://morrisrrrrrrr-svg.github.io/" class="responsive-iframe"></iframe>
+            </div>
+        </section>
 
     </main>
 
-    <footer class="w-full max-w-6xl text-center py-4 text-xs text-slate-500">
+    <footer class="w-full max-w-5xl text-center py-2 text-[10px] text-slate-500">
         💡 全新現貨，不用等五十年後的流星雨
     </footer>
 
     <!-- JS 邏輯 -->
     <script>
-        // --- 視窗大小切換控制函式 ---
-        const frameSizes = ['400px', '700px', '1000px'];
-        let frameSizeIndex = 0;
-        function toggleFrameSize() {
-            frameSizeIndex = (frameSizeIndex + 1) % frameSizes.length;
-            const container = document.getElementById('frameContainer');
-            container.style.height = frameSizes[frameSizeIndex];
-        }
-
-        function toggleCardSize(cardId) {
-            const card = document.getElementById(cardId);
-            if (card.style.maxHeight === 'none') {
-                card.style.maxHeight = '';
-            } else {
-                card.style.maxHeight = 'none';
-            }
-        }
-
         // --- 1. 118s 精準計時器邏輯 ---
         const TOTAL_TIME = 118;
         let targetEndTime = 0;
@@ -399,7 +379,7 @@
         startResetBtn.addEventListener('click', startTimer);
         updateUI(TOTAL_TIME);
 
-        // --- 2. 手動經驗值計算與即時碼錶邏輯 ---
+        // --- 2. 手動經驗值計算邏輯 ---
         let manualExpState = { startVal: null, startTime: null, endVal: null, endTime: null };
         let stopwatchInterval = null;
 
@@ -429,20 +409,16 @@
 
         startExpBtn.addEventListener('click', () => {
             const val = parseInt(startExpInput.value, 10);
-            if (isNaN(val) || val <= 0) {
-                alert("⚠️ 請輸入有效的起始經驗值數字！");
-                return;
-            }
+            if (isNaN(val) || val <= 0) { alert("⚠️ 請輸入有效的起始經驗值！"); return; }
             manualExpState.startVal = val;
             manualExpState.startTime = Date.now();
             expStartEl.textContent = val.toLocaleString();
-            expStateBadge.textContent = "計時中 (步驟 2)";
+            expStateBadge.textContent = "步驟 2";
             expStateBadge.className = "text-[10px] text-emerald-400 font-mono";
 
             clearInterval(stopwatchInterval);
             stopwatchInterval = setInterval(() => {
-                const elapsed = Date.now() - manualExpState.startTime;
-                liveStopwatch.textContent = formatStopwatch(elapsed);
+                liveStopwatch.textContent = formatStopwatch(Date.now() - manualExpState.startTime);
             }, 500);
 
             step1Container.classList.add('hidden');
@@ -451,16 +427,13 @@
 
         endExpBtn.addEventListener('click', () => {
             const val = parseInt(endExpInput.value, 10);
-            if (isNaN(val) || val <= 0) {
-                alert("⚠️ 請輸入有效的結束經驗值數字！");
-                return;
-            }
+            if (isNaN(val) || val <= 0) { alert("⚠️ 請輸入有效的結束經驗值！"); return; }
             manualExpState.endVal = val;
             manualExpState.endTime = Date.now();
             clearInterval(stopwatchInterval);
 
             expEndEl.textContent = val.toLocaleString();
-            expStateBadge.textContent = "計算完成 🎉";
+            expStateBadge.textContent = "完成 🎉";
             expStateBadge.className = "text-[10px] text-cyan-400 font-mono";
 
             const durationMs = manualExpState.endTime - manualExpState.startTime;
@@ -471,31 +444,25 @@
             expDurationEl.textContent = `${Math.floor(durationSec / 60)}分${durationSec % 60}秒`;
             expGainedEl.textContent = gained > 0 ? `+${gained.toLocaleString()}` : gained.toLocaleString();
 
-            const exp10Min = Math.round((gained / durationSec) * 600);
-            exp10MinEl.textContent = `+${exp10Min.toLocaleString()}`;
-            const expPerHour = Math.round((gained / durationSec) * 3600);
-            expPerHourEl.textContent = `+${expPerHour.toLocaleString()}`;
+            exp10MinEl.textContent = `+${Math.round((gained / durationSec) * 600).toLocaleString()}`;
+            expPerHourEl.textContent = `+${Math.round((gained / durationSec) * 3600).toLocaleString()}`;
         });
 
         resetExpBtn.addEventListener('click', () => {
             clearInterval(stopwatchInterval);
             manualExpState = { startVal: null, startTime: null, endVal: null, endTime: null };
-            startExpInput.value = "";
-            endExpInput.value = "";
-            expStartEl.textContent = "-";
-            expEndEl.textContent = "-";
-            expDurationEl.textContent = "-";
-            expGainedEl.textContent = "-";
-            exp10MinEl.textContent = "0";
-            expPerHourEl.textContent = "0";
+            startExpInput.value = ""; endExpInput.value = "";
+            expStartEl.textContent = "-"; expEndEl.textContent = "-";
+            expDurationEl.textContent = "-"; expGainedEl.textContent = "-";
+            exp10MinEl.textContent = "0"; expPerHourEl.textContent = "0";
             liveStopwatch.textContent = "00:00:00";
             step1Container.classList.remove('hidden');
             step2Container.classList.add('hidden');
-            expStateBadge.textContent = "準備中 (步驟 1)";
+            expStateBadge.textContent = "步驟 1";
             expStateBadge.className = "text-[10px] text-cyan-400 font-mono";
         });
 
-        // --- 3. 手動楓幣計算與即時碼錶邏輯 ---
+        // --- 3. 手動楓幣計算邏輯 ---
         let manualMesoState = { startVal: null, startTime: null, endVal: null, endTime: null };
         let mesoStopwatchInterval = null;
 
@@ -517,20 +484,16 @@
 
         startMesoBtn.addEventListener('click', () => {
             const val = parseInt(startMesoInput.value, 10);
-            if (isNaN(val) || val < 0) {
-                alert("⚠️ 請輸入有效的起始楓幣數字！");
-                return;
-            }
+            if (isNaN(val) || val < 0) { alert("⚠️ 請輸入有效的起始楓幣！"); return; }
             manualMesoState.startVal = val;
             manualMesoState.startTime = Date.now();
             mesoStartEl.textContent = val.toLocaleString();
-            mesoStateBadge.textContent = "計時中 (步驟 2)";
+            mesoStateBadge.textContent = "步驟 2";
             mesoStateBadge.className = "text-[10px] text-emerald-400 font-mono";
 
             clearInterval(mesoStopwatchInterval);
             mesoStopwatchInterval = setInterval(() => {
-                const elapsed = Date.now() - manualMesoState.startTime;
-                mesoLiveStopwatch.textContent = formatStopwatch(elapsed);
+                mesoLiveStopwatch.textContent = formatStopwatch(Date.now() - manualMesoState.startTime);
             }, 500);
 
             mesoStep1Container.classList.add('hidden');
@@ -539,47 +502,38 @@
 
         endMesoBtn.addEventListener('click', () => {
             const val = parseInt(endMesoInput.value, 10);
-            if (isNaN(val) || val < 0) {
-                alert("⚠️ 請輸入有效的結束楓幣數字！");
-                return;
-            }
+            if (isNaN(val) || val < 0) { alert("⚠️ 請輸入有效的結束楓幣！"); return; }
             manualMesoState.endVal = val;
             manualMesoState.endTime = Date.now();
             clearInterval(mesoStopwatchInterval);
 
             mesoEndEl.textContent = val.toLocaleString();
-            mesoStateBadge.textContent = "計算完成 🎉";
+            mesoStateBadge.textContent = "完成 🎉";
             mesoStateBadge.className = "text-[10px] text-amber-400 font-mono";
 
-            const correctDurationMs = manualMesoState.endTime - manualMesoState.startTime;
-            const durationSec = Math.max(1, Math.round(correctDurationMs / 1000));
+            const durationMs = manualMesoState.endTime - manualMesoState.startTime;
+            const durationSec = Math.max(1, Math.round(durationMs / 1000));
             const gained = manualMesoState.endVal - manualMesoState.startVal;
 
-            mesoLiveStopwatch.textContent = formatStopwatch(correctDurationMs);
+            mesoLiveStopwatch.textContent = formatStopwatch(durationMs);
             mesoDurationEl.textContent = `${Math.floor(durationSec / 60)}分${durationSec % 60}秒`;
             mesoGainedEl.textContent = gained > 0 ? `+${gained.toLocaleString()}` : gained.toLocaleString();
 
-            const meso10Min = Math.round((gained / durationSec) * 600);
-            meso10MinEl.textContent = `+${meso10Min.toLocaleString()}`;
-            const mesoPerHour = Math.round((gained / durationSec) * 3600);
-            mesoPerHourEl.textContent = `+${mesoPerHour.toLocaleString()}`;
+            meso10MinEl.textContent = `+${Math.round((gained / durationSec) * 600).toLocaleString()}`;
+            mesoPerHourEl.textContent = `+${Math.round((gained / durationSec) * 3600).toLocaleString()}`;
         });
 
         resetMesoBtn.addEventListener('click', () => {
             clearInterval(mesoStopwatchInterval);
             manualMesoState = { startVal: null, startTime: null, endVal: null, endTime: null };
-            startMesoInput.value = "";
-            endMesoInput.value = "";
-            mesoStartEl.textContent = "-";
-            mesoEndEl.textContent = "-";
-            mesoDurationEl.textContent = "-";
-            mesoGainedEl.textContent = "-";
-            meso10MinEl.textContent = "0";
-            mesoPerHourEl.textContent = "0";
+            startMesoInput.value = ""; endMesoInput.value = "";
+            mesoStartEl.textContent = "-"; mesoEndEl.textContent = "-";
+            mesoDurationEl.textContent = "-"; mesoGainedEl.textContent = "-";
+            meso10MinEl.textContent = "0"; mesoPerHourEl.textContent = "0";
             mesoLiveStopwatch.textContent = "00:00:00";
             mesoStep1Container.classList.remove('hidden');
             mesoStep2Container.classList.add('hidden');
-            mesoStateBadge.textContent = "準備中 (步驟 1)";
+            mesoStateBadge.textContent = "步驟 1";
             mesoStateBadge.className = "text-[10px] text-amber-400 font-mono";
         });
     </script>
